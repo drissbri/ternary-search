@@ -20,8 +20,6 @@ echo "CPUs: $SLURM_CPUS_PER_TASK"
 
 # Load required modules (adjust according to your HPC environment)
 module purge
-module load Python/3.9.5-GCCcore-10.3.0
-module load matplotlib/3.4.2
 
 # Set up environment
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
