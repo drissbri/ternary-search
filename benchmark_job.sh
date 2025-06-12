@@ -8,6 +8,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=8GB
 #SBATCH --partition=gpu_p100
+#SBATCH --gpus-per-node=1
 
 # TST Benchmarking Job Script for HPC
 # This script runs comprehensive performance benchmarks for the Ternary Search Tree implementation
