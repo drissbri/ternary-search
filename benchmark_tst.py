@@ -3,6 +3,7 @@ Benchmarking script for Ternary Search Tree performance analysis.
 
 This script measures and plots the performance of TST operations with increasing data sizes.
 It's designed to be run on HPC infrastructure for comprehensive performance analysis.
+Now uses words from data/corncob_lowercase.txt instead of generating random words.
 
 Usage:
     python benchmark_tst.py [--output-dir OUTPUT_DIR] [--max-size MAX_SIZE]
@@ -33,6 +34,10 @@ class TSTBenchmark:
         self.output_dir = output_dir
         os.makedirs(output_dir, exist_ok=True)
         
+        # Load words from corncob_lowercase.txt
+        self.word_list = self.load_corncob_words()
+        print(f"Loaded {len(self.word_list)} words from corncob_lowercase.txt")
+        
         # Results storage
         self.results = {
             'insertion': {'sizes': [], 'times': [], 'avg_times': []},
@@ -41,43 +46,80 @@ class TSTBenchmark:
             'memory': {'sizes': [], 'node_counts': []}
         }
     
-    def generate_random_words(self, count: int, min_length: int = 3, max_length: int = 10) -> List[str]:
+    def load_corncob_words(self) -> List[str]:
         """
-        Generate random words for testing.
+        Load words from the corncob_lowercase.txt file.
         
-        Args:
-            count: Number of words to generate
-            min_length: Minimum word length
-            max_length: Maximum word length
-            
         Returns:
-            List of random words
+            List of words from the file
         """
-        words = set()
-        while len(words) < count:
-            length = random.randint(min_length, max_length)
-            word = ''.join(random.choices(string.ascii_lowercase, k=length))
-            words.add(word)
-        return list(words)
+        corncob_path = os.path.join("data", "corncob_lowercase.txt")
+        
+        if not os.path.exists(corncob_path):
+            raise FileNotFoundError(f"Could not find {corncob_path}. Please ensure the file exists.")
+        
+        words = []
+        try:
+            with open(corncob_path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    word = line.strip()
+                    if word:  # Skip empty lines
+                        words.append(word)
+        except Exception as e:
+            raise Exception(f"Error reading {corncob_path}: {e}")
+        
+        if not words:
+            raise ValueError(f"No words found in {corncob_path}")
+        
+        return words
     
-    def generate_prefix_words(self, count: int, common_prefixes: List[str]) -> List[str]:
+    def get_random_words(self, count: int) -> List[str]:
         """
-        Generate words with common prefixes for realistic testing.
+        Get a random sample of words from the corncob list.
         
         Args:
-            count: Number of words to generate
-            common_prefixes: List of common prefixes to use
+            count: Number of words to return
             
         Returns:
-            List of words with common prefixes
+            List of random words from corncob_lowercase.txt
         """
-        words = set()
-        while len(words) < count:
-            prefix = random.choice(common_prefixes)
-            suffix_length = random.randint(1, 8)
-            suffix = ''.join(random.choices(string.ascii_lowercase, k=suffix_length))
-            words.add(prefix + suffix)
-        return list(words)
+        if count > len(self.word_list):
+            # If requested count is larger than available words, use all words
+            print(f"Warning: Requested {count} words but only {len(self.word_list)} available. Using all words.")
+            return self.word_list.copy()
+        
+        return random.sample(self.word_list, count)
+    
+    def get_prefix_words(self, count: int, common_prefixes: List[str]) -> List[str]:
+        """
+        Get words from corncob list that start with common prefixes.
+        
+        Args:
+            count: Number of words to return
+            common_prefixes: List of prefixes to filter by
+            
+        Returns:
+            List of words with common prefixes from corncob_lowercase.txt
+        """
+        # Find all words that start with any of the common prefixes
+        prefix_words = []
+        for word in self.word_list:
+            for prefix in common_prefixes:
+                if word.startswith(prefix):
+                    prefix_words.append(word)
+                    break
+        
+        if not prefix_words:
+            print(f"Warning: No words found with prefixes {common_prefixes}. Using random words.")
+            return self.get_random_words(count)
+        
+        if count > len(prefix_words):
+            # If we don't have enough prefix words, supplement with random words
+            remaining = count - len(prefix_words)
+            additional_words = self.get_random_words(remaining)
+            return prefix_words + additional_words
+        
+        return random.sample(prefix_words, count)
     
     def benchmark_insertion(self, sizes: List[int]) -> None:
         """
@@ -91,8 +133,8 @@ class TSTBenchmark:
         for size in sizes:
             print(f"  Testing insertion with {size} words...")
             
-            # Generate test data
-            words = self.generate_random_words(size)
+            # Generate test data from corncob words
+            words = self.get_random_words(size)
             
             # Best case: balanced insertion order
             balanced_words = sorted(words)
@@ -139,8 +181,8 @@ class TSTBenchmark:
         for size in sizes:
             print(f"  Testing search with {size} words...")
             
-            # Generate and insert test data
-            words = self.generate_random_words(size)
+            # Generate and insert test data from corncob words
+            words = self.get_random_words(size)
             tst = TernarySearchTree()
             
             for word in words:
@@ -174,21 +216,32 @@ class TSTBenchmark:
         """
         print("Benchmarking prefix search performance...")
         
-        common_prefixes = ["pre", "pro", "con", "com", "int", "exp", "imp", "out"]
+        # Use common prefixes that are likely to exist in the corncob word list
+        common_prefixes = ["pre", "pro", "con", "com", "int", "exp", "imp", "out", "un", "re"]
         
         for size in sizes:
             print(f"  Testing prefix search with {size} words...")
             
-            # Generate words with common prefixes
-            words = self.generate_prefix_words(size, common_prefixes)
+            # Generate words with common prefixes from corncob list
+            words = self.get_prefix_words(size, common_prefixes)
             tst = TernarySearchTree()
             
             for word in words:
                 tst.insert(word)
             
+            # Find prefixes that actually exist in our dataset
+            existing_prefixes = []
+            for prefix in common_prefixes:
+                if any(word.startswith(prefix) for word in words):
+                    existing_prefixes.append(prefix)
+            
+            if not existing_prefixes:
+                # Fallback to single character prefixes
+                existing_prefixes = list(set(word[0] for word in words if word))[:10]
+            
             # Test prefix search performance - use fewer prefixes for very large datasets
-            test_prefix_count = min(10, max(5, 20000 // size))  # Fewer tests for larger sizes
-            test_prefixes = random.sample(common_prefixes, min(test_prefix_count, len(common_prefixes)))
+            test_prefix_count = min(len(existing_prefixes), max(3, 20000 // size))
+            test_prefixes = random.sample(existing_prefixes, test_prefix_count)
             
             start_time = time.perf_counter()
             total_results = 0
@@ -218,7 +271,7 @@ class TSTBenchmark:
         for size in sizes:
             print(f"  Testing memory usage with {size} words...")
             
-            words = self.generate_random_words(size)
+            words = self.get_random_words(size)
             tst = TernarySearchTree()
             
             for word in words:
@@ -239,6 +292,12 @@ class TSTBenchmark:
         Args:
             max_size: Maximum data size to test
         """
+        # Ensure max_size doesn't exceed available words
+        available_words = len(self.word_list)
+        if max_size > available_words:
+            print(f"Warning: Requested max_size {max_size} exceeds available words {available_words}. Using {available_words}.")
+            max_size = available_words
+        
         # Define test sizes with better scaling for large datasets
         if max_size <= 10000:
             sizes = [10, 50, 100, 500, 1000, 2000, 5000, 7500, 10000]
@@ -250,6 +309,7 @@ class TSTBenchmark:
         
         print(f"Running comprehensive benchmark with sizes: {sizes}")
         print(f"Maximum size: {max_size}")
+        print(f"Using words from corncob_lowercase.txt ({available_words} words available)")
         
         # Run all benchmarks
         self.benchmark_insertion(sizes)
@@ -276,7 +336,7 @@ class TSTBenchmark:
         
         # Create subplots
         fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 12))
-        fig.suptitle('Ternary Search Tree Performance Analysis (Up to 50K Words)', fontsize=16)
+        fig.suptitle('Ternary Search Tree Performance Analysis (Using Corncob Words)', fontsize=16)
         
         # Plot 1: Insertion time vs size
         if self.results['insertion']['sizes']:
@@ -321,7 +381,7 @@ class TSTBenchmark:
         if self.results['memory']['sizes']:
             ax4.plot(self.results['memory']['sizes'], self.results['memory']['node_counts'], 'r-o', markersize=4)
             ax4.set_xlabel('Number of Words')
-            ax4.set_ylabel('Number of Nodes')
+            ax4.set_ylabel('Node Count')
             ax4.set_title('Memory Usage (Node Count)')
             ax4.grid(True, alpha=0.3)
             ax4.set_xscale('log')
@@ -329,104 +389,32 @@ class TSTBenchmark:
         
         plt.tight_layout()
         
-        # Save plots
+        # Save plot
         plot_file = os.path.join(self.output_dir, "performance_plots.png")
         plt.savefig(plot_file, dpi=300, bbox_inches='tight')
         print(f"Plots saved to {plot_file}")
         
-        # Also save individual plots
-        self.save_individual_plots()
-    
-    def save_individual_plots(self) -> None:
-        """Save individual performance plots."""
-        # Insertion performance comparison
-        if self.results['insertion']['sizes']:
-            plt.figure(figsize=(12, 8))
-            sizes = self.results['insertion']['sizes'][::3]
-            balanced_times = self.results['insertion']['times'][::3]
-            worst_times = self.results['insertion']['times'][1::3]
-            avg_times = self.results['insertion']['times'][2::3]
-            
-            plt.plot(sizes, balanced_times, 'g-o', label='Balanced case', linewidth=2, markersize=6)
-            plt.plot(sizes[:len(worst_times)], worst_times, 'r-s', label='Worst case', linewidth=2, markersize=6)
-            plt.plot(sizes[:len(avg_times)], avg_times, 'b-^', label='Average case', linewidth=2, markersize=6)
-            
-            plt.xlabel('Number of Words')
-            plt.ylabel('Total Insertion Time (seconds)')
-            plt.title('TST Insertion Performance: Best vs Average vs Worst Case (Up to 50K)')
-            plt.legend()
-            plt.grid(True, alpha=0.3)
-            plt.xscale('log')
-            plt.yscale('log')
-            
-            plt.savefig(os.path.join(self.output_dir, "insertion_comparison.png"), 
-                       dpi=300, bbox_inches='tight')
-            plt.close()
-        
-        # Complexity analysis plot
-        if self.results['search']['sizes'] and self.results['insertion']['sizes']:
-            plt.figure(figsize=(12, 8))
-            
-            # Theoretical complexity lines
-            max_size = max(self.results['search']['sizes'])
-            x_theory = np.logspace(1, np.log10(max_size), 100)
-            
-            # O(log n) line
-            log_n = np.log2(x_theory)
-            log_n_normalized = log_n / log_n[-1] * max(self.results['search']['avg_times'])
-            
-            # O(n) line  
-            linear_n = x_theory
-            linear_n_normalized = linear_n / linear_n[-1] * max(self.results['search']['avg_times']) * 10
-            
-            plt.subplot(2, 1, 1)
-            plt.plot(self.results['search']['sizes'], self.results['search']['avg_times'], 
-                    'bo-', label='Actual Search Time', linewidth=2, markersize=6)
-            plt.plot(x_theory, log_n_normalized, 'g--', label='O(log n) theoretical', linewidth=2)
-            plt.plot(x_theory, linear_n_normalized, 'r--', label='O(n) theoretical', linewidth=2)
-            plt.xlabel('Number of Words')
-            plt.ylabel('Average Search Time (seconds)')
-            plt.title('Search Time Complexity Analysis (Up to 50K Words)')
-            plt.legend()
-            plt.grid(True, alpha=0.3)
-            plt.xscale('log')
-            plt.yscale('log')
-            
-            plt.subplot(2, 1, 2)
-            if len(self.results['insertion']['sizes']) >= 3:
-                avg_insertion_times = self.results['insertion']['times'][2::3]
-                avg_insertion_sizes = self.results['insertion']['sizes'][2::3]
-                plt.plot(avg_insertion_sizes, avg_insertion_times, 'ro-', 
-                        label='Actual Insertion Time', linewidth=2, markersize=6)
-            
-            plt.xlabel('Number of Words')
-            plt.ylabel('Total Insertion Time (seconds)')
-            plt.title('Insertion Time Complexity')
-            plt.legend()
-            plt.grid(True, alpha=0.3)
-            plt.xscale('log')
-            plt.yscale('log')
-            
-            plt.tight_layout()
-            plt.savefig(os.path.join(self.output_dir, "complexity_analysis.png"), 
-                       dpi=300, bbox_inches='tight')
-            plt.close()
+        # Show plot if in interactive environment
+        try:
+            plt.show()
+        except:
+            pass  # Non-interactive environment
 
 
 def compare_with_btree():
-    """Compare TST performance with B-tree (simulated with sorted list)."""
+    """Compare TST performance with simulated B-tree."""
     print("\nComparing with B-tree simulation...")
+    
+    # Load benchmark instance to get corncob words
+    benchmark = TSTBenchmark()
     
     sizes = [100, 500, 1000, 5000, 10000]
     tst_times = []
     btree_times = []
     
     for size in sizes:
-        # Generate test data
-        words = []
-        for i in range(size):
-            word = ''.join([chr(ord('a') + (i + j) % 26) for j in range(5)])
-            words.append(word)
+        # Generate test data from corncob words
+        words = benchmark.get_random_words(size)
         
         # Test TST
         tst = TernarySearchTree()
@@ -435,7 +423,8 @@ def compare_with_btree():
             tst.insert(word)
         # Search for some words
         search_count = min(1000, size // 10)
-        for word in words[:search_count]:
+        search_words = random.sample(words, search_count)
+        for word in search_words:
             tst.search(word, exact=True)
         tst_time = time.perf_counter() - start_time
         tst_times.append(tst_time)
@@ -448,7 +437,7 @@ def compare_with_btree():
             import bisect
             bisect.insort(btree_data, word)
         # Search for some words
-        for word in words[:search_count]:
+        for word in search_words:
             bisect.bisect_left(btree_data, word)
         btree_time = time.perf_counter() - start_time
         btree_times.append(btree_time)
@@ -461,7 +450,7 @@ def compare_with_btree():
     plt.plot(sizes, btree_times, 'r-s', label='B-tree (simulated)', linewidth=2, markersize=6)
     plt.xlabel('Number of Words')
     plt.ylabel('Total Time (seconds)')
-    plt.title('TST vs B-tree Performance Comparison (Extended)')
+    plt.title('TST vs B-tree Performance Comparison (Using Corncob Words)')
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.xscale('log')
