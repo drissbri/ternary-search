@@ -146,8 +146,9 @@ class TSTBenchmark:
             for word in words:
                 tst.insert(word)
             
-            # Test search performance
-            search_words = random.sample(words, min(100, len(words)))
+            # Test search performance - scale search count with size but cap at reasonable limit
+            search_count = min(1000, max(100, size // 50))  # More searches for larger datasets
+            search_words = random.sample(words, min(search_count, len(words)))
             
             start_time = time.perf_counter()
             for word in search_words:
@@ -162,7 +163,7 @@ class TSTBenchmark:
             self.results['search']['times'].append(total_time)
             self.results['search']['avg_times'].append(avg_time)
             
-            print(f"    {total_time:.4f}s total, {avg_time*1000:.4f}ms avg")
+            print(f"    {total_time:.4f}s total, {avg_time*1000:.4f}ms avg ({len(search_words)} searches)")
     
     def benchmark_prefix_search(self, sizes: List[int]) -> None:
         """
@@ -185,8 +186,9 @@ class TSTBenchmark:
             for word in words:
                 tst.insert(word)
             
-            # Test prefix search performance
-            test_prefixes = random.sample(common_prefixes, min(10, len(common_prefixes)))
+            # Test prefix search performance - use fewer prefixes for very large datasets
+            test_prefix_count = min(10, max(5, 20000 // size))  # Fewer tests for larger sizes
+            test_prefixes = random.sample(common_prefixes, min(test_prefix_count, len(common_prefixes)))
             
             start_time = time.perf_counter()
             total_results = 0
@@ -230,20 +232,21 @@ class TSTBenchmark:
             
             print(f"    {node_count} nodes, {node_count/size:.2f} nodes per word")
     
-    def run_comprehensive_benchmark(self, max_size: int = 10000) -> None:
+    def run_comprehensive_benchmark(self, max_size: int = 50000) -> None:
         """
         Run comprehensive benchmark suite.
         
         Args:
             max_size: Maximum data size to test
         """
-        # Define test sizes (exponential growth)
-        sizes = [10, 50, 100, 500, 1000, 2000, 5000]
-        if max_size > 5000:
-            sizes.extend([7500, 10000])
-        if max_size > 10000:
-            additional_sizes = [i for i in range(15000, max_size + 1, 5000)]
-            sizes.extend(additional_sizes)
+        # Define test sizes with better scaling for large datasets
+        if max_size <= 10000:
+            sizes = [10, 50, 100, 500, 1000, 2000, 5000, 7500, 10000]
+            sizes = [s for s in sizes if s <= max_size]
+        else:
+            # Extended range for larger datasets
+            sizes = [10, 50, 100, 500, 1000, 2000, 5000, 10000, 15000, 25000, 35000, 50000]
+            sizes = [s for s in sizes if s <= max_size]
         
         print(f"Running comprehensive benchmark with sizes: {sizes}")
         print(f"Maximum size: {max_size}")
@@ -273,7 +276,7 @@ class TSTBenchmark:
         
         # Create subplots
         fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 12))
-        fig.suptitle('Ternary Search Tree Performance Analysis', fontsize=16)
+        fig.suptitle('Ternary Search Tree Performance Analysis (Up to 50K Words)', fontsize=16)
         
         # Plot 1: Insertion time vs size
         if self.results['insertion']['sizes']:
@@ -338,19 +341,19 @@ class TSTBenchmark:
         """Save individual performance plots."""
         # Insertion performance comparison
         if self.results['insertion']['sizes']:
-            plt.figure(figsize=(10, 6))
+            plt.figure(figsize=(12, 8))
             sizes = self.results['insertion']['sizes'][::3]
             balanced_times = self.results['insertion']['times'][::3]
             worst_times = self.results['insertion']['times'][1::3]
             avg_times = self.results['insertion']['times'][2::3]
             
-            plt.plot(sizes, balanced_times, 'g-o', label='Balanced case', linewidth=2)
-            plt.plot(sizes[:len(worst_times)], worst_times, 'r-s', label='Worst case', linewidth=2)
-            plt.plot(sizes[:len(avg_times)], avg_times, 'b-^', label='Average case', linewidth=2)
+            plt.plot(sizes, balanced_times, 'g-o', label='Balanced case', linewidth=2, markersize=6)
+            plt.plot(sizes[:len(worst_times)], worst_times, 'r-s', label='Worst case', linewidth=2, markersize=6)
+            plt.plot(sizes[:len(avg_times)], avg_times, 'b-^', label='Average case', linewidth=2, markersize=6)
             
             plt.xlabel('Number of Words')
             plt.ylabel('Total Insertion Time (seconds)')
-            plt.title('TST Insertion Performance: Best vs Average vs Worst Case')
+            plt.title('TST Insertion Performance: Best vs Average vs Worst Case (Up to 50K)')
             plt.legend()
             plt.grid(True, alpha=0.3)
             plt.xscale('log')
@@ -378,12 +381,12 @@ class TSTBenchmark:
             
             plt.subplot(2, 1, 1)
             plt.plot(self.results['search']['sizes'], self.results['search']['avg_times'], 
-                    'bo-', label='Actual Search Time', linewidth=2)
+                    'bo-', label='Actual Search Time', linewidth=2, markersize=6)
             plt.plot(x_theory, log_n_normalized, 'g--', label='O(log n) theoretical', linewidth=2)
             plt.plot(x_theory, linear_n_normalized, 'r--', label='O(n) theoretical', linewidth=2)
             plt.xlabel('Number of Words')
             plt.ylabel('Average Search Time (seconds)')
-            plt.title('Search Time Complexity Analysis')
+            plt.title('Search Time Complexity Analysis (Up to 50K Words)')
             plt.legend()
             plt.grid(True, alpha=0.3)
             plt.xscale('log')
@@ -391,10 +394,10 @@ class TSTBenchmark:
             
             plt.subplot(2, 1, 2)
             if len(self.results['insertion']['sizes']) >= 3:
-                avg_insertion_times = self.results['insertion']['times'][2::3]  # Average case
+                avg_insertion_times = self.results['insertion']['times'][2::3]
                 avg_insertion_sizes = self.results['insertion']['sizes'][2::3]
                 plt.plot(avg_insertion_sizes, avg_insertion_times, 'ro-', 
-                        label='Actual Insertion Time', linewidth=2)
+                        label='Actual Insertion Time', linewidth=2, markersize=6)
             
             plt.xlabel('Number of Words')
             plt.ylabel('Total Insertion Time (seconds)')
@@ -414,7 +417,7 @@ def compare_with_btree():
     """Compare TST performance with B-tree (simulated with sorted list)."""
     print("\nComparing with B-tree simulation...")
     
-    sizes = [100, 500, 1000, 5000]
+    sizes = [100, 500, 1000, 5000, 10000]
     tst_times = []
     btree_times = []
     
@@ -431,7 +434,8 @@ def compare_with_btree():
         for word in words:
             tst.insert(word)
         # Search for some words
-        for word in words[:min(100, len(words))]:
+        search_count = min(1000, size // 10)
+        for word in words[:search_count]:
             tst.search(word, exact=True)
         tst_time = time.perf_counter() - start_time
         tst_times.append(tst_time)
@@ -444,7 +448,7 @@ def compare_with_btree():
             import bisect
             bisect.insort(btree_data, word)
         # Search for some words
-        for word in words[:min(100, len(words))]:
+        for word in words[:search_count]:
             bisect.bisect_left(btree_data, word)
         btree_time = time.perf_counter() - start_time
         btree_times.append(btree_time)
@@ -453,11 +457,11 @@ def compare_with_btree():
     
     # Plot comparison
     plt.figure(figsize=(10, 6))
-    plt.plot(sizes, tst_times, 'b-o', label='Ternary Search Tree', linewidth=2)
-    plt.plot(sizes, btree_times, 'r-s', label='B-tree (simulated)', linewidth=2)
+    plt.plot(sizes, tst_times, 'b-o', label='Ternary Search Tree', linewidth=2, markersize=6)
+    plt.plot(sizes, btree_times, 'r-s', label='B-tree (simulated)', linewidth=2, markersize=6)
     plt.xlabel('Number of Words')
     plt.ylabel('Total Time (seconds)')
-    plt.title('TST vs B-tree Performance Comparison')
+    plt.title('TST vs B-tree Performance Comparison (Extended)')
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.xscale('log')
@@ -471,8 +475,8 @@ def main():
     parser = argparse.ArgumentParser(description='Benchmark Ternary Search Tree performance')
     parser.add_argument('--output-dir', default='benchmark_results',
                        help='Directory to save results (default: benchmark_results)')
-    parser.add_argument('--max-size', type=int, default=10000,
-                       help='Maximum data size to test (default: 10000)')
+    parser.add_argument('--max-size', type=int, default=50000,
+                       help='Maximum data size to test (default: 50000)')
     parser.add_argument('--compare-btree', action='store_true',
                        help='Include B-tree comparison')
     
