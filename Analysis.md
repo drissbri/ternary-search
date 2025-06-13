@@ -17,7 +17,7 @@ Performance analysis of Ternary Search Tree implementation based on HPC benchmar
 ## Visual Performance Results
 
 ![Performance Overview](benchmark_results_50k_58226744/results/performance_plots.png)
-*Figure 1: Performance analysis across all operations and dataset sizes*
+*Figure 1: Performance analysis across all operations and dataset sizes (randomly generated words)*
 
 ![Performance Overview](benchmark_results_50k_58227072/results/performance_plots.png)
 *Figure 2: Performance analysis using the corncob dataset*
