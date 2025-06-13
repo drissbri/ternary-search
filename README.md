@@ -32,6 +32,9 @@ A Python implementation of a Ternary Search Tree (TST) data structure for effici
 - `requirements.txt` - Python package dependencies
 - `README.md` - This documentation file
 
+### Analysis of Results
+- `Analysis.md` - Benchmarks analysis and conclusions
+
 ## Features
 
 The Ternary Search Tree implementation provides:
