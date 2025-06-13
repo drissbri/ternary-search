@@ -133,10 +133,11 @@ class TestTernarySearchTree(unittest.TestCase):
         self.tst.insert("abd")
         
         tree_str = str(self.tst)
-        self.assertIn("char: a", tree_str)
-        self.assertIn("char: b", tree_str)
-        self.assertIn("char: c", tree_str)
-        self.assertIn("char: d", tree_str)
+        # Update these assertions to match your actual format:
+        self.assertIn("char: 'a'", tree_str)  # Note the quotes
+        self.assertIn("char: 'b'", tree_str)
+        self.assertIn("char: 'c'", tree_str)  
+        self.assertIn("char: 'd'", tree_str)
         self.assertIn("terminates:", tree_str)
     
     def test_edge_cases(self):
