@@ -18,7 +18,7 @@ A Python implementation of a Ternary Search Tree (TST) data structure for effici
 ### Benchmarking and Performance
 - `benchmark_tst.py` - Performance benchmarking script with plotting
 - `benchmark_job.sh` - SLURM job script for HPC cluster execution
-- `benchmark_results_*/` - Generated benchmark results (example from job 58226647)
+- `benchmark_results_*/` - Generated benchmark results (2 examples)
   - `basic/` - Benchmark data and plots
     - `benchmark_results.json` - Raw performance data
     - `performance_plots.png` - Combined performance visualization
