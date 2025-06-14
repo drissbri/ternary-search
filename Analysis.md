@@ -16,17 +16,25 @@ Performance analysis of Ternary Search Tree implementation based on HPC benchmar
 
 ## Visual Performance Results
 
-![Performance Overview](benchmark_results_50k_58226744/results/performance_plots.png)
-*Figure 1: Performance analysis across all operations and dataset sizes (randomly generated words)*
+<p align="center">
+  <img src="benchmark_results_50k_58226744/results/performance_plots.png" alt="Performance Overview">
+  <br><em>Figure&nbsp;1: Performance analysis across all operations and dataset sizes (randomly generated words)</em>
+</p>
 
-![Performance Overview](benchmark_results_50k_58227072/results/performance_plots.png)
-*Figure 2: Performance analysis using the corncob dataset*
+<p align="center">
+  <img src="benchmark_results_50k_58227072/results/performance_plots.png" alt="Performance Overview Corncob">
+  <br><em>Figure&nbsp;2: Performance analysis using the corncob dataset</em>
+</p>
 
-![Insertion Performance](benchmark_results_50k_58226744/results/insertion_comparison.png)
-*Figure 3: Insertion performance comparison (best/average/worst case scenarios)*
+<p align="center">
+  <img src="benchmark_results_50k_58226744/results/insertion_comparison.png" alt="Insertion Performance">
+  <br><em>Figure&nbsp;3: Insertion performance comparison (best/average/worst-case scenarios)</em>
+</p>
 
-![Complexity Analysis](benchmark_results_50k_58226744/results/complexity_analysis.png)
-*Figure 4: Theoretical vs actual complexity validation*
+<p align="center">
+  <img src="benchmark_results_50k_58226744/results/complexity_analysis.png" alt="Complexity Analysis">
+  <br><em>Figure&nbsp;4: Theoretical vs. actual complexity validation</em>
+</p>
 
 ## Key Results
 
