@@ -9,7 +9,7 @@ A Python implementation of a Ternary Search Tree (TST) data structure for effici
   - `__init__.py` - Package initialization and exports
   - `node.py` - TSTNode class for individual tree nodes
   - `tree.py` - TernarySearchTree main implementation
-  - `__pycache__/` - Compiled Python bytecode (auto-generated)
+  - `__pycache__/` - Compiled bytecode files (auto-generated)
 
 ### Testing and Validation
 - `test_ternary_search_tree.py` -  Unit tests
@@ -33,4 +33,4 @@ A Python implementation of a Ternary Search Tree (TST) data structure for effici
 - `README.md` - Actual documentation file
 
 ### Analysis of Results
-- `Analysis.md` - Benchmarks, analysis of results and conclusions
+- `Analysis.md` - Benchmarks and analysis of results and conclusions
