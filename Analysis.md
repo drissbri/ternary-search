@@ -11,7 +11,6 @@ Performance analysis of Ternary Search Tree implementation based on HPC benchmar
 - **Resources**: 4 CPUs, 16GB memory
 - **Python Version**: 3.11.5
 - **Test Range**: 10 to 50,000 words
-- **Job ID**: 58226744
 - **Duration**: ~26 seconds total execution time
 
 ## Visual Performance Results
