@@ -64,6 +64,18 @@ The visual analysis (Figure 3) confirms theoretical performance:
 - **Memory**: Better than linear due to prefix sharing
 - **Scalability**: Maintains efficiency at practical scales
 
+## Expected Time and Space Complexity
+
+Theoretical complexity analysis reveals the performance characteristics that guide the TST's design decisions. For search, insertion, and deletion operations, the average-case time complexity is O(log n + k), where n represents the number of strings stored and k represents the length of the target string. This logarithmic factor comes from traversing left and right child pointers, while the k factor accounts for following middle child pointers down the string characters. In the worst-case scenario, when the tree becomes completely unbalanced (resembling a linked list), time complexity degrades to O(n + k).
+
+Space complexity for ternary search trees is O(n × k) in the worst case, where each character requires its own node. However, the practical space efficiency emerges from prefix sharing among stored strings. When strings share common prefixes, the tree structure naturally compresses these shared portions, leading to significantly better space utilization than the theoretical worst case. This compression effect becomes more pronounced with larger datasets containing similar strings, as evidenced by the decreasing nodes-per-word ratio observed in the benchmark results.
+
+## Comparison with B-trees
+
+The comparison between ternary search trees and B-trees reveals complementary strengths for different use cases. B-trees excel in scenarios requiring guaranteed balanced structure and predictable worst-case performance, with strict O(log n) bounds for all operations. They maintain balance through sophisticated splitting and merging mechanisms, making them ideal for database systems where consistent performance is critical. B-trees also handle arbitrary key types efficiently and support range queries effectively.
+
+Ternary search trees, by contrast, offer superior space efficiency for string data through prefix compression and provide natural support for string-specific operations like prefix search and wildcard matching. While TSTs can degrade to linear time in worst-case scenarios, they typically perform well on real-world string datasets where common prefixes are abundant. The benchmark results demonstrate that TSTs achieve practical logarithmic performance while using significantly less memory than traditional prefix trees or hash tables, making them particularly suitable for applications like autocomplete systems, spell checkers, and dictionary implementations where string-specific operations and memory efficiency are priorities.
+
 ## Conclusions
 
 The benchmark results demonstrate that this Ternary Search Tree implementation delivers exceptional performance characteristics that align closely with theoretical expectations. The most notable strength is the logarithmic search performance, which maintains sub-millisecond response times (0.0027-0.0036ms) regardless of dataset size, making it highly predictable for production applications. Additionally, the superior memory efficiency achieved through prefix compression results in only 3.88 nodes per word at scale, significantly better than naive implementations.
