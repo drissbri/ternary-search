@@ -2,7 +2,12 @@
 
 ## Overview
 
-Performance analysis of Ternary Search Tree implementation based on HPC benchmarks.
+Evaluation of the practical performance characteristics of our Ternary Search Tree (TST) implementation, positioning it within the broader trie–BST spectrum. We set out to answer three key questions:
+
+- **Search Efficiency**: Does search latency scale as O(log n + k) in real workloads?
+- **Memory Footprint**: How much space savings does prefix sharing deliver compared to a naive node‐per‐character approach?
+- **Scalability & Robustness**: Can the TST sustain predictable performance across mulyiple datasets under diverse operation patterns?
+
 
 
 ## Experimental Setup
