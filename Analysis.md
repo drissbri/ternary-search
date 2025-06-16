@@ -59,7 +59,7 @@ Performance analysis of Ternary Search Tree implementation based on HPC benchmar
 
 ## Complexity Validation
 
-The visual analysis (Figure 3) confirms theoretical performance:
+The empirical data plotted in Figure 4 and the visual analysis in Figure 3 underscore that our TST implementation faithfully adheres to its theoretical complexity bounds across diverse workload conditions:
 - **Search**: O(log n + k) - actual performance tracks logarithmic bound
 - **Memory**: Better than linear due to prefix sharing
 - **Scalability**: Maintains efficiency at practical scales
